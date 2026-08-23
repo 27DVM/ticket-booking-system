@@ -126,7 +126,7 @@ Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxNTc3Zi0yNjA0LTRkOGQtOWUyNS1kMTdkNGM3NDVjZjYiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODc0OTQwMjcsImV4cCI6MTc4ODA5ODgyN30.OSTa1-JHETWbpKrQSXwrYq2ffaPdTe7DrcGDbfr1-U8
 
 {
-  "seatIds": ["20258c36-465e-4c7e-b3d9-97a141c1a663"]
+  "seatIds": ["4129b87d-31c4-49ce-b2a8-fad82bb6b0a8"]
 }
 
 ### Confirm booking
@@ -136,5 +136,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxN
 
 {
   "showId": "0b9812a8-7473-4b61-aea2-09ed5b2e277b",
-  "seatIds": ["20258c36-465e-4c7e-b3d9-97a141c1a663"]
+  "seatIds": ["4129b87d-31c4-49ce-b2a8-fad82bb6b0a8"]
+}
+
+### Join waitlist as User B for seat A5's category   ← new, add this at the bottom
+POST http://localhost:5000/api/events/shows/0b9812a8-7473-4b61-aea2-09ed5b2e277b/waitlist
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhOGUxOTE4NC1kMWM2LTQ3Y2UtOWY4OS03Nzc0ZTE3ODkyMWEiLCJyb2xlIjoiT1JHQU5JU0VSIiwiaWF0IjoxNzg3NTEyMDk3LCJleHAiOjE3ODgxMTY4OTd9.pzZ1X3Se826IcKbeXAOtZQq1ZnOtZ1MwLn5vsPcWxeY
+Content-Type: application/json
+
+{
+  "categoryId": "aeadb0bf-09c2-4909-9716-7331ab6990f4"
 }

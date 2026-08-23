@@ -40,6 +40,7 @@ model SeatCategory {
   showSeats ShowSeat[]
   venue Venue  @relation(fields: [venueId], references: [id])
   seats Seat[]
+  waitlist Waitlist[]
 }
 
 model Seat {
@@ -77,6 +78,7 @@ model Show {
   event     Event      @relation(fields: [eventId], references: [id])
   showSeats ShowSeat[]
   bookings  Booking[]
+  waitlist  Waitlist[]
 }
 
 enum ShowStatus {
@@ -125,6 +127,27 @@ model Booking {
 enum BookingStatus {
   CONFIRMED
   CANCELLED
+}
+
+model Waitlist {
+  id         String         @id @default(uuid())
+  userId     String
+  showId     String
+  categoryId String
+  status     WaitlistStatus @default(WAITING)
+  offeredSeatId String?
+  offerExpiresAt DateTime?
+  createdAt  DateTime       @default(now())
+
+  show     Show         @relation(fields: [showId], references: [id])
+  category SeatCategory @relation(fields: [categoryId], references: [id])
+}
+
+enum WaitlistStatus {
+  WAITING
+  OFFERED
+  EXPIRED
+  CONVERTED
 }
 
 enum Role {

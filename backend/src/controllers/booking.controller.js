@@ -2,6 +2,7 @@ const prisma = require("../prismaClient");
 const QRCode = require("qrcode");
 const crypto = require("crypto");
 const { sendBookingConfirmationEmail } = require("../utils/mailer");
+const { offerSeatToNextInWaitlist } = require('./waitlist.controller');
 
 function generateReferenceCode() {
   return "BK-" + crypto.randomBytes(4).toString("hex").toUpperCase();
@@ -112,4 +113,58 @@ const confirmBooking = async (req, res) => {
   }
 };
 
-module.exports = { confirmBooking };
+async function cancelBooking(req, res) {
+  const { bookingId } = req.params;
+  const userId = req.user.userId; // remember: userId, NOT id
+
+  try {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { seats: true } // adjust relation name if yours differs
+    });
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    const isOwner = booking.userId === userId;
+    const isPrivileged = req.user.role === 'ADMIN' || req.user.role === 'ORGANISER';
+    if (!isOwner && !isPrivileged) {
+      return res.status(403).json({ error: 'Not authorized to cancel this booking' });
+    }
+
+    if (booking.status === 'CANCELLED') {
+      return res.status(409).json({ error: 'Booking already cancelled' });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      for (const seat of booking.seats) {
+        const offered = await offerSeatToNextInWaitlist(
+          tx,
+          booking.showId,
+          seat.categoryId,
+          seat.id
+        );
+
+        if (!offered) {
+          await tx.showSeat.update({
+            where: { id: seat.id },
+            data: { status: 'AVAILABLE', heldBy: null, holdExpiresAt: null, bookingId: null }
+          });
+        }
+      }
+
+      await tx.booking.update({
+        where: { id: bookingId },
+        data: { status: 'CANCELLED' }
+      });
+    }, { maxWait: 10000, timeout: 15000 });
+
+    res.status(200).json({ message: 'Booking cancelled successfully' });
+  } catch (err) {
+    console.error('[cancelBooking] Error:', err.message);
+    res.status(500).json({ error: 'Failed to cancel booking' });
+  }
+}
+
+module.exports = { confirmBooking, cancelBooking };
