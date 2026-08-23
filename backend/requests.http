@@ -35,3 +35,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxN
   ]
 }
 
+### Bulk create seats for a venue
+POST http://localhost:5000/api/venues/846fa601-aab7-4017-b746-00e92256c207/seats/bulk
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxNTc3Zi0yNjA0LTRkOGQtOWUyNS1kMTdkNGM3NDVjZjYiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODc0OTQwMjcsImV4cCI6MTc4ODA5ODgyN30.OSTa1-JHETWbpKrQSXwrYq2ffaPdTe7DrcGDbfr1-U8
+
+{
+  "categoryId": "aeadb0bf-09c2-4909-9716-7331ab6990f4",
+  "rows": 5,
+  "seatsPerRow": 10,
+  "startRow": "A"
+}
