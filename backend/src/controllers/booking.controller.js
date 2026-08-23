@@ -1,6 +1,7 @@
 const prisma = require("../prismaClient");
 const QRCode = require("qrcode");
 const crypto = require("crypto");
+const { sendBookingConfirmationEmail } = require("../utils/mailer");
 
 function generateReferenceCode() {
   return "BK-" + crypto.randomBytes(4).toString("hex").toUpperCase();
@@ -68,6 +69,22 @@ const confirmBooking = async (req, res) => {
 
     // Generate QR code (encodes the reference code)
     const qrDataUrl = await QRCode.toDataURL(booking.referenceCode);
+    
+
+    // Send confirmation email (best-effort — don't fail the booking if email fails)
+    try {
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (user?.email) {
+        await sendBookingConfirmationEmail({
+          to: user.email,
+          referenceCode: booking.referenceCode,
+          totalAmount: booking.totalAmount,
+          qrCodeDataUrl: qrDataUrl,
+        });
+      }
+    } catch (emailErr) {
+      console.error("[email] Failed to send booking confirmation:", emailErr.message);
+    }
 
     return res.status(201).json({
       message: "Booking confirmed",
