@@ -16,3 +16,8 @@ Content-Type: application/json
   "email": "test@example.com",
   "password": "password123"
 }
+
+### Get current user (protected)
+GET http://localhost:5000/api/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxNTc3Zi0yNjA0LTRkOGQtOWUyNS1kMTdkNGM3NDVjZjYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJpYXQiOjE3ODc0OTI2NzUsImV4cCI6MTc4ODA5NzQ3NX0.9cWp9z4LryEwkat1LKmdVr5FgcZUUNvEGmYJWvx7t7E
+

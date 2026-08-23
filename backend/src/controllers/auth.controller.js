@@ -77,5 +77,8 @@ async function login(req, res) {
     res.status(500).json({ error: "Something went wrong during login" });
   }
 }
-
-module.exports = { register, login };
+async function getMe(req, res) {
+  const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
+  res.json({ id: user.id, name: user.name, email: user.email, role: user.role });
+}
+module.exports = { register, login, getMe};
