@@ -19,5 +19,19 @@ Content-Type: application/json
 
 ### Get current user (protected)
 GET http://localhost:5000/api/auth/me
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxNTc3Zi0yNjA0LTRkOGQtOWUyNS1kMTdkNGM3NDVjZjYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJpYXQiOjE3ODc0OTI2NzUsImV4cCI6MTc4ODA5NzQ3NX0.9cWp9z4LryEwkat1LKmdVr5FgcZUUNvEGmYJWvx7t7E
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxNTc3Zi0yNjA0LTRkOGQtOWUyNS1kMTdkNGM3NDVjZjYiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODc0OTQwMjcsImV4cCI6MTc4ODA5ODgyN30.OSTa1-JHETWbpKrQSXwrYq2ffaPdTe7DrcGDbfr1-U8
+
+### Create a venue (Admin only)
+POST http://localhost:5000/api/venues
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxNTc3Zi0yNjA0LTRkOGQtOWUyNS1kMTdkNGM3NDVjZjYiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODc0OTQwMjcsImV4cCI6MTc4ODA5ODgyN30.OSTa1-JHETWbpKrQSXwrYq2ffaPdTe7DrcGDbfr1-U8
+
+{
+  "name": "Grand Cinema Hall",
+  "address": "123 Main Street, Coimbatore",
+  "categories": [
+    { "name": "Premium", "colorTag": "#FFD700" },
+    { "name": "Standard", "colorTag": "#87CEEB" }
+  ]
+}
 

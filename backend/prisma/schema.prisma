@@ -20,6 +20,52 @@ model User {
   createdAt    DateTime @default(now())
 }
 
+model Venue {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  createdBy String
+  createdAt DateTime @default(now())
+
+  seats      Seat[]
+  categories SeatCategory[]
+  events     Event[]
+}
+
+model SeatCategory {
+  id       String  @id @default(uuid())
+  venueId  String
+  name     String
+  colorTag String?
+
+  venue Venue  @relation(fields: [venueId], references: [id])
+  seats Seat[]
+}
+
+model Seat {
+  id         String @id @default(uuid())
+  venueId    String
+  categoryId String
+  row        String
+  number     Int
+  label      String
+
+  venue     Venue        @relation(fields: [venueId], references: [id])
+  category  SeatCategory @relation(fields: [categoryId], references: [id])
+
+  @@unique([venueId, row, number])
+}
+
+model Event {
+  id          String @id @default(uuid())
+  title       String
+  description String?
+  organiserId String
+  venueId     String
+
+  venue Venue @relation(fields: [venueId], references: [id])
+}
+
 enum Role {
   CUSTOMER
   ORGANISER
