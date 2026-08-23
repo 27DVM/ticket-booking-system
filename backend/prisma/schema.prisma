@@ -37,7 +37,7 @@ model SeatCategory {
   venueId  String
   name     String
   colorTag String?
-
+  showSeats ShowSeat[]
   venue Venue  @relation(fields: [venueId], references: [id])
   seats Seat[]
 }
@@ -49,7 +49,8 @@ model Seat {
   row        String
   number     Int
   label      String
-
+  
+  showSeats ShowSeat[]
   venue     Venue        @relation(fields: [venueId], references: [id])
   category  SeatCategory @relation(fields: [categoryId], references: [id])
 
@@ -57,13 +58,52 @@ model Seat {
 }
 
 model Event {
-  id          String @id @default(uuid())
+  id          String   @id @default(uuid())
   title       String
   description String?
   organiserId String
   venueId     String
 
-  venue Venue @relation(fields: [venueId], references: [id])
+  venue Venue  @relation(fields: [venueId], references: [id])
+  shows Show[]
+}
+
+model Show {
+  id        String    @id @default(uuid())
+  eventId   String
+  dateTime  DateTime
+  status    ShowStatus @default(SCHEDULED)
+
+  event     Event      @relation(fields: [eventId], references: [id])
+  showSeats ShowSeat[]
+}
+
+enum ShowStatus {
+  SCHEDULED
+  CLOSED
+}
+
+model ShowSeat {
+  id             String     @id @default(uuid())
+  showId         String
+  seatId         String
+  categoryId     String
+  price          Float
+  status         SeatStatus @default(AVAILABLE)
+  heldBy         String?
+  holdExpiresAt  DateTime?
+
+  show     Show         @relation(fields: [showId], references: [id])
+  seat     Seat         @relation(fields: [seatId], references: [id])
+  category SeatCategory @relation(fields: [categoryId], references: [id])
+
+  @@unique([showId, seatId])
+}
+
+enum SeatStatus {
+  AVAILABLE
+  HELD
+  BOOKED
 }
 
 enum Role {

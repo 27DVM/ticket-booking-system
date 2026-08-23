@@ -46,3 +46,73 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxN
   "seatsPerRow": 10,
   "startRow": "A"
 }
+
+### Register an organiser
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test Organiser",
+  "email": "organiser@example.com",
+  "password": "password123",
+  "role": "ORGANISER"
+}
+
+### Login as organiser
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "organiser@example.com",
+  "password": "password123"
+}
+
+### Create an event
+POST http://localhost:5000/api/events
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhOGUxOTE4NC1kMWM2LTQ3Y2UtOWY4OS03Nzc0ZTE3ODkyMWEiLCJyb2xlIjoiT1JHQU5JU0VSIiwiaWF0IjoxNzg3NDk2NzEwLCJleHAiOjE3ODgxMDE1MTB9.rMPLwRRFp77g6RZLiLq8YUpU77I440UGFF7FlAVyxxE
+
+{
+  "title": "Avengers: Legacy",
+  "description": "Action movie premiere",
+  "venueId": "846fa601-aab7-4017-b746-00e92256c207"
+}
+
+### Create a show for the event
+POST http://localhost:5000/api/events/8d9ce2a2-2ec6-4228-9221-da1bec087bba/shows
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhOGUxOTE4NC1kMWM2LTQ3Y2UtOWY4OS03Nzc0ZTE3ODkyMWEiLCJyb2xlIjoiT1JHQU5JU0VSIiwiaWF0IjoxNzg3NDk2NzEwLCJleHAiOjE3ODgxMDE1MTB9.rMPLwRRFp77g6RZLiLq8YUpU77I440UGFF7FlAVyxxE
+
+{
+  
+  "dateTime": "2026-09-15T18:00:00.000Z",
+  "seatPricing": {
+    "aeadb0bf-09c2-4909-9716-7331ab6990f4": 300,
+    "edb9495f-7e1b-411c-a5f5-376921103403": 300,
+    "81e809d2-04fe-4c1a-8a97-f7c0e2c31348": 150
+  }
+}
+
+### Bulk create Premium seats for venue 846fa601
+POST http://localhost:5000/api/venues/846fa601-aab7-4017-b746-00e92256c207/seats/bulk
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxNTc3Zi0yNjA0LTRkOGQtOWUyNS1kMTdkNGM3NDVjZjYiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODc0OTQwMjcsImV4cCI6MTc4ODA5ODgyN30.OSTa1-JHETWbpKrQSXwrYq2ffaPdTe7DrcGDbfr1-U8
+
+{
+  "categoryId": "edb9495f-7e1b-411c-a5f5-376921103403",
+  "rows": 5,
+  "seatsPerRow": 10,
+  "startRow": "A"
+}
+
+### Bulk create Standard seats for venue 846fa601
+POST http://localhost:5000/api/venues/846fa601-aab7-4017-b746-00e92256c207/seats/bulk
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxNTc3Zi0yNjA0LTRkOGQtOWUyNS1kMTdkNGM3NDVjZjYiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODc0OTQwMjcsImV4cCI6MTc4ODA5ODgyN30.OSTa1-JHETWbpKrQSXwrYq2ffaPdTe7DrcGDbfr1-U8
+
+{
+  "categoryId": "81e809d2-04fe-4c1a-8a97-f7c0e2c31348",
+  "rows": 5,
+  "seatsPerRow": 10,
+  "startRow": "F"
+}
