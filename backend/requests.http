@@ -116,3 +116,15 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxN
   "seatsPerRow": 10,
   "startRow": "F"
 }
+
+### View seats for a show
+GET http://localhost:5000/api/events/shows/0b9812a8-7473-4b61-aea2-09ed5b2e277b/seats
+
+### Hold seats for a show
+POST http://localhost:5000/api/events/shows/0b9812a8-7473-4b61-aea2-09ed5b2e277b/hold
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxNTc3Zi0yNjA0LTRkOGQtOWUyNS1kMTdkNGM3NDVjZjYiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODc0OTQwMjcsImV4cCI6MTc4ODA5ODgyN30.OSTa1-JHETWbpKrQSXwrYq2ffaPdTe7DrcGDbfr1-U8
+
+{
+  "seatIds": ["20258c36-465e-4c7e-b3d9-97a141c1a663"]
+}
