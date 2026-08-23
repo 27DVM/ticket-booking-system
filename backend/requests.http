@@ -128,3 +128,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxN
 {
   "seatIds": ["20258c36-465e-4c7e-b3d9-97a141c1a663"]
 }
+
+### Confirm booking
+POST http://localhost:5000/api/bookings/confirm
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxNTc3Zi0yNjA0LTRkOGQtOWUyNS1kMTdkNGM3NDVjZjYiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODc0OTQwMjcsImV4cCI6MTc4ODA5ODgyN30.OSTa1-JHETWbpKrQSXwrYq2ffaPdTe7DrcGDbfr1-U8
+
+{
+  "showId": "0b9812a8-7473-4b61-aea2-09ed5b2e277b",
+  "seatIds": ["79762d2a-7ec6-4d09-96a7-a9f424a9fd72"]
+}

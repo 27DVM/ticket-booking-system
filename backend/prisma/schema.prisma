@@ -76,6 +76,7 @@ model Show {
 
   event     Event      @relation(fields: [eventId], references: [id])
   showSeats ShowSeat[]
+  bookings  Booking[]
 }
 
 enum ShowStatus {
@@ -92,10 +93,12 @@ model ShowSeat {
   status         SeatStatus @default(AVAILABLE)
   heldBy         String?
   holdExpiresAt  DateTime?
+  bookingId      String?
 
   show     Show         @relation(fields: [showId], references: [id])
   seat     Seat         @relation(fields: [seatId], references: [id])
   category SeatCategory @relation(fields: [categoryId], references: [id])
+  booking  Booking?     @relation(fields: [bookingId], references: [id])
 
   @@unique([showId, seatId])
 }
@@ -104,6 +107,24 @@ enum SeatStatus {
   AVAILABLE
   HELD
   BOOKED
+}
+
+model Booking {
+  id            String        @id @default(uuid())
+  userId        String
+  showId        String
+  referenceCode String        @unique
+  totalAmount   Float
+  status        BookingStatus @default(CONFIRMED)
+  createdAt     DateTime      @default(now())
+
+  show  Show       @relation(fields: [showId], references: [id])
+  seats ShowSeat[]
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
 }
 
 enum Role {

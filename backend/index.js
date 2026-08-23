@@ -4,6 +4,7 @@ require("dotenv").config();
 const authRoutes = require("./src/routes/auth.routes");
 const venueRoutes = require("./src/routes/venue.routes");
 const eventRoutes = require("./src/routes/event.routes");
+const bookingRoutes = require("./src/routes/booking.routes");
 const { startSweeper } = require("./src/utils/sweeper");
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/venues", venueRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Ticket Booking System API is running" });

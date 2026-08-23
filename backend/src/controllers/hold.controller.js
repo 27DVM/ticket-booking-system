@@ -5,7 +5,7 @@ const HOLD_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 const holdSeats = async (req, res) => {
   const { showId } = req.params;
   const { seatIds } = req.body; // array of ShowSeat ids
-  const userId = req.user.id;
+  const userId = req.user.userId;
 
   if (!Array.isArray(seatIds) || seatIds.length === 0) {
     return res.status(400).json({ error: "seatIds must be a non-empty array" });
