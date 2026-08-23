@@ -147,3 +147,7 @@ Content-Type: application/json
 {
   "categoryId": "aeadb0bf-09c2-4909-9716-7331ab6990f4"
 }
+
+### Cancel booking as User A
+POST http://localhost:5000/api/bookings/79ae11cf-fc46-43d2-b158-781450e4f885/cancel
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxNTc3Zi0yNjA0LTRkOGQtOWUyNS1kMTdkNGM3NDVjZjYiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODc1MTE3MDQsImV4cCI6MTc4ODExNjUwNH0.k00dc7m5RBUM1fWRTjNvNjgZ96jwC_B_wg5bWtbMfeo
