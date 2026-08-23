@@ -4,6 +4,7 @@ require("dotenv").config();
 const authRoutes = require("./src/routes/auth.routes");
 const venueRoutes = require("./src/routes/venue.routes");
 const eventRoutes = require("./src/routes/event.routes");
+const { startSweeper } = require("./src/utils/sweeper");
 
 const app = express();
 
@@ -21,4 +22,5 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  startSweeper();
 });
