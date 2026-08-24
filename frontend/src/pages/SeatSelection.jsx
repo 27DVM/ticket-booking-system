@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
 import { getShowSeats, holdSeats } from "../api/events";
+import { confirmBooking } from "../api/bookings";
 
 function SeatSelection() {
   const { showId } = useParams();
@@ -8,104 +10,182 @@ function SeatSelection() {
 
   const [seats, setSeats] = useState([]);
   const [selectedSeats, setSelectedSeats] = useState([]);
+
+  const [heldSeatIds, setHeldSeatIds] = useState([]);
+  const [holdExpiresAt, setHoldExpiresAt] = useState(null);
+
+  const [booking, setBooking] = useState(null);
+
   const [loading, setLoading] = useState(true);
+  const [holding, setHolding] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+
   const [error, setError] = useState("");
 
+  // --------------------------------------------------
+  // FETCH SEATS
+  // --------------------------------------------------
+
   useEffect(() => {
-    const loadSeats = async () => {
+    const fetchSeats = async () => {
       try {
-        const data = await getShowSeats(showId);
+        setLoading(true);
+        setError("");
 
-        console.log("Seats API response:", data);
+        const response = await getShowSeats(showId);
 
-        const seatList = Array.isArray(data)
-          ? data
-          : data.seats || [];
+        console.log("Seats API response:", response);
+
+        const seatList = Array.isArray(response)
+          ? response
+          : response.seats || [];
 
         setSeats(seatList);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to load seats:", err);
 
         setError(
           err.response?.data?.error ||
-          "Unable to load seats."
+            "Unable to load seats. Please try again."
         );
       } finally {
         setLoading(false);
       }
     };
 
-    loadSeats();
+    if (showId) {
+      fetchSeats();
+    }
   }, [showId]);
 
-  const toggleSeat = (seat) => {
-    // Don't allow selection of unavailable seats
+  // --------------------------------------------------
+  // SELECT / DESELECT SEAT
+  // --------------------------------------------------
+
+  const handleSeatClick = (seat) => {
+    // Do not allow already booked/unavailable seats
     if (
-      seat.status &&
-      !["AVAILABLE", "available"].includes(seat.status)
+      seat.status === "BOOKED" ||
+      seat.status === "HELD" ||
+      seat.status === "UNAVAILABLE"
     ) {
       return;
     }
 
-    setSelectedSeats((current) => {
-      const alreadySelected = current.some(
-        (selected) => selected.id === seat.id
-      );
+    setSelectedSeats((previous) => {
+      const alreadySelected = previous.includes(seat.id);
 
       if (alreadySelected) {
-        return current.filter(
-          (selected) => selected.id !== seat.id
-        );
+        return previous.filter((id) => id !== seat.id);
       }
 
-      return [...current, seat];
+      return [...previous, seat.id];
     });
-  };
 
-  const isSelected = (seatId) => {
-    return selectedSeats.some(
-      (seat) => seat.id === seatId
-    );
-  };
-  const handleHoldSeats = async () => {
-  if (selectedSeats.length === 0) {
-    return;
-  }
-
-  try {
     setError("");
+  };
 
-    const seatIds = selectedSeats.map((seat) => seat.id);
+  // --------------------------------------------------
+  // HOLD SELECTED SEATS
+  // --------------------------------------------------
 
-    console.log("Holding seats:", seatIds);
+  const handleHoldSeats = async () => {
+    if (selectedSeats.length === 0) {
+      return;
+    }
 
-    const response = await holdSeats(showId, seatIds);
+    try {
+      setHolding(true);
+      setError("");
 
-    console.log("Hold seats response:", response);
+      console.log("Holding seats:", selectedSeats);
 
-    // Refresh seats from backend
-    const updatedSeats = await getShowSeats(showId);
+      const response = await holdSeats(showId, selectedSeats);
 
-    const seatList = Array.isArray(updatedSeats)
-      ? updatedSeats
-      : updatedSeats.seats || [];
+      console.log("Hold seats response:", response);
 
-    setSeats(seatList);
-    setSelectedSeats([]);
+      setHeldSeatIds(response.heldSeatIds || []);
+      setHoldExpiresAt(response.holdExpiresAt || null);
 
-    alert("Seats held successfully!");
-  } catch (err) {
-    console.error("Hold seats error:", err);
+      setSelectedSeats([]);
 
-    setError(
-      err.response?.data?.error ||
-      "Unable to hold seats."
-    );
-  }
-};
+      // Refresh seats so their current status is displayed
+      const seatsResponse = await getShowSeats(showId);
+
+      const seatList = Array.isArray(seatsResponse)
+        ? seatsResponse
+        : seatsResponse.seats || [];
+
+      setSeats(seatList);
+    } catch (err) {
+      console.error("Failed to hold seats:", err);
+
+      setError(
+        err.response?.data?.error ||
+          "Unable to hold selected seats. Please try again."
+      );
+    } finally {
+      setHolding(false);
+    }
+  };
+
+  // --------------------------------------------------
+  // CONFIRM BOOKING
+  // --------------------------------------------------
+
+  const handleConfirmBooking = async () => {
+    if (heldSeatIds.length === 0) {
+      return;
+    }
+
+    try {
+      setConfirming(true);
+      setError("");
+
+      console.log("Confirming booking:", {
+        showId,
+        seatIds: heldSeatIds,
+      });
+
+      const response = await confirmBooking(showId, heldSeatIds);
+
+      console.log("Booking confirmation response:", response);
+
+      // THIS IS THE IMPORTANT PART
+      // Store the returned booking so the confirmation
+      // section inside the return() gets displayed.
+      setBooking(response.booking);
+
+      setHeldSeatIds([]);
+      setHoldExpiresAt(null);
+
+      // Refresh seats after successful booking
+      const seatsResponse = await getShowSeats(showId);
+
+      const seatList = Array.isArray(seatsResponse)
+        ? seatsResponse
+        : seatsResponse.seats || [];
+
+      setSeats(seatList);
+    } catch (err) {
+      console.error("Failed to confirm booking:", err);
+
+      setError(
+        err.response?.data?.error ||
+          "Unable to confirm booking. Please try again."
+      );
+    } finally {
+      setConfirming(false);
+    }
+  };
+
+  // --------------------------------------------------
+  // LOADING
+  // --------------------------------------------------
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <p className="text-lg text-gray-600">
           Loading seats...
         </p>
@@ -113,147 +193,118 @@ function SeatSelection() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">
-            {error}
-          </p>
-
-          <button
-            onClick={() => navigate(-1)}
-            className="rounded-lg bg-blue-600 px-5 py-2 text-white"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // --------------------------------------------------
+  // MAIN PAGE
+  // --------------------------------------------------
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 px-6 py-8">
+      <div className="mx-auto max-w-5xl">
 
-      {/* Header */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        {/* BACK BUTTON */}
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mb-6 text-sm font-medium text-blue-600 hover:text-blue-800"
+        >
+          ← Back
+        </button>
 
-          <button
-            onClick={() => navigate(-1)}
-            className="text-blue-600 font-medium hover:underline"
-          >
-            ← Back
-          </button>
+        {/* PAGE HEADER */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Select Your Seats
+          </h1>
 
-        </div>
-      </nav>
-
-      <main className="max-w-6xl mx-auto px-6 py-10">
-
-        <h1 className="text-3xl font-bold text-gray-900">
-          Select Your Seats
-        </h1>
-
-        <p className="mt-2 text-gray-600">
-          Choose the seats you want to book.
-        </p>
-
-        {/* Legend */}
-        <div className="mt-8 flex flex-wrap gap-6 rounded-xl bg-white p-5 shadow-sm">
-
-          <div className="flex items-center gap-2">
-            <div className="h-5 w-5 rounded bg-gray-200 border" />
-            <span className="text-sm text-gray-600">
-              Available
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="h-5 w-5 rounded bg-blue-600" />
-            <span className="text-sm text-gray-600">
-              Selected
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="h-5 w-5 rounded bg-red-400" />
-            <span className="text-sm text-gray-600">
-              Unavailable
-            </span>
-          </div>
-
+          <p className="mt-1 text-gray-600">
+            Choose the seats you want to book.
+          </p>
         </div>
 
-        {/* Screen */}
-        <div className="mt-10">
+        {/* ERROR */}
+        {error && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+            {error}
+          </div>
+        )}
 
-          <div className="mx-auto max-w-2xl rounded-t-[50%] bg-gray-800 py-3 text-center text-sm font-semibold text-white">
+        {/* LEGEND */}
+        <div className="mb-6 rounded-xl bg-white p-5 shadow-sm">
+          <div className="flex flex-wrap items-center gap-6 text-sm">
+
+            <div className="flex items-center gap-2">
+              <span className="h-4 w-4 rounded border border-gray-400 bg-white" />
+              <span>Available</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="h-4 w-4 rounded bg-blue-600" />
+              <span>Selected</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="h-4 w-4 rounded bg-red-500" />
+              <span>Unavailable</span>
+            </div>
+
+          </div>
+        </div>
+
+        {/* SCREEN */}
+        <div className="mb-8 flex justify-center">
+          <div className="w-2/3 rounded-b-[50%] rounded-t-[50%] bg-gray-800 py-3 text-center text-xs font-semibold text-white">
             SCREEN
           </div>
-
         </div>
 
-        {/* Seats */}
-        <div className="mt-10 rounded-2xl bg-white p-8 shadow-sm">
+        {/* SEAT MAP */}
+        <div className="rounded-2xl bg-white p-6 shadow-sm">
 
-          {seats.length === 0 ? (
-            <div className="text-center py-10">
-              <p className="text-gray-500">
-                No seats found for this show.
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-wrap justify-center gap-3">
+          <div className="grid grid-cols-5 gap-3 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12">
 
-              {seats.map((seat) => {
+            {seats.map((seat) => {
 
-                const selected = isSelected(seat.id);
+              const isSelected = selectedSeats.includes(seat.id);
 
-                const unavailable =
-                  seat.status &&
-                  !["AVAILABLE", "available"].includes(
-                    seat.status
-                  );
+              const isUnavailable =
+                seat.status === "BOOKED" ||
+                seat.status === "HELD" ||
+                seat.status === "UNAVAILABLE";
 
-                let seatClass =
-                  "h-10 w-10 rounded-lg text-xs font-semibold transition ";
+              let seatClass =
+                "bg-gray-200 text-gray-700 hover:bg-blue-100";
 
-                if (selected) {
-                  seatClass +=
-                    "bg-blue-600 text-white scale-105 ";
-                } else if (unavailable) {
-                  seatClass +=
-                    "bg-red-400 text-white cursor-not-allowed ";
-                } else {
-                  seatClass +=
-                    "bg-gray-200 text-gray-700 hover:bg-gray-300 ";
-                }
+              if (isSelected) {
+                seatClass =
+                  "bg-blue-600 text-white";
+              } else if (isUnavailable) {
+                seatClass =
+                  "cursor-not-allowed bg-red-400 text-white";
+              }
 
-                return (
-                  <button
-                    key={seat.id}
-                    type="button"
-                    disabled={unavailable}
-                    onClick={() => toggleSeat(seat)}
-                    className={seatClass}
-                    title={`Seat ${seat.seatNumber || seat.number || seat.id}`}
-                  >
-                    {seat.seatNumber ||
-                      seat.number ||
-                      seat.label ||
-                      "S"}
-                  </button>
-                );
-              })}
+              return (
+                <button
+                  key={seat.id}
+                  type="button"
+                  disabled={isUnavailable}
+                  onClick={() => handleSeatClick(seat)}
+                  className={`h-10 rounded-lg text-xs font-semibold transition ${seatClass}`}
+                  title={
+                    isUnavailable
+                      ? "Seat unavailable"
+                      : `Seat ${seat.label}`
+                  }
+                >
+                  {seat.label || "S"}
+                </button>
+              );
+            })}
 
-            </div>
-          )}
-
+          </div>
         </div>
 
-        {/* Selection summary */}
-        <div className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
+        {/* SELECTED SEATS / HOLD */}
+        <div className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
@@ -262,35 +313,179 @@ function SeatSelection() {
                 Selected Seats
               </p>
 
-              <p className="mt-1 font-semibold text-gray-900">
-                {selectedSeats.length === 0
-                  ? "No seats selected"
-                  : selectedSeats
-                      .map(
-                        (seat) =>
-                          seat.seatNumber ||
-                          seat.number ||
-                          seat.label ||
-                          seat.id
-                      )
-                      .join(", ")}
-              </p>
+              {selectedSeats.length === 0 ? (
+                <p className="mt-1 text-sm text-gray-700">
+                  No seats selected
+                </p>
+              ) : (
+                <p className="mt-1 font-semibold text-gray-900">
+                  {selectedSeats.length} seat(s) selected
+                </p>
+              )}
             </div>
 
             <button
-                type="button"
-                disabled={selectedSeats.length === 0}
-                onClick={handleHoldSeats}
-                className="rounded-lg bg-blue-600 px-6 py-3 text-white font-semibold disabled:bg-gray-300"
+              type="button"
+              disabled={
+                selectedSeats.length === 0 || holding
+              }
+              onClick={handleHoldSeats}
+              className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
-                Hold Selected Seats
+              {holding
+                ? "Holding..."
+                : "Hold Selected Seats"}
             </button>
 
           </div>
 
+          {/* HELD SEATS */}
+          {heldSeatIds.length > 0 && (
+            <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
+
+              <p className="font-semibold text-blue-800">
+                Seats Held Successfully
+              </p>
+
+              <p className="mt-1 text-sm text-blue-700">
+                {heldSeatIds.length} seat(s) are currently held for you.
+              </p>
+
+              {holdExpiresAt && (
+                <p className="mt-1 text-sm text-blue-700">
+                  Hold expires at:{" "}
+                  {new Date(holdExpiresAt).toLocaleTimeString()}
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={handleConfirmBooking}
+                disabled={confirming}
+                className="mt-4 rounded-lg bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+              >
+                {confirming
+                  ? "Confirming..."
+                  : "Confirm Booking"}
+              </button>
+
+            </div>
+          )}
         </div>
 
-      </main>
+        {/* ==================================================
+            BOOKING CONFIRMATION
+            IMPORTANT: THIS IS INSIDE return()
+            ================================================== */}
+
+        {booking && (
+          <div className="mt-8 rounded-2xl bg-white p-8 shadow-lg">
+
+            <div className="text-center">
+
+              {/* SUCCESS MESSAGE */}
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                <span className="text-3xl text-green-600">
+                  ✓
+                </span>
+              </div>
+
+              <h2 className="mt-4 text-3xl font-bold text-green-600">
+                Booking Confirmed!
+              </h2>
+
+              <p className="mt-2 text-gray-600">
+                Your seats have been successfully booked.
+              </p>
+
+              {/* BOOKING DETAILS */}
+              <div className="mx-auto mt-8 max-w-md rounded-xl border border-gray-200 p-5">
+
+                {/* REFERENCE */}
+                <div className="flex items-center justify-between border-b pb-4">
+                  <span className="text-gray-500">
+                    Reference Code
+                  </span>
+
+                  <span className="font-bold text-gray-900">
+                    {booking.referenceCode}
+                  </span>
+                </div>
+
+                {/* BOOKING ID */}
+                <div className="flex items-start justify-between border-b py-4">
+                  <span className="text-gray-500">
+                    Booking ID
+                  </span>
+
+                  <span className="ml-4 max-w-[220px] break-all text-right text-sm font-semibold text-gray-900">
+                    {booking.id}
+                  </span>
+                </div>
+
+                {/* TOTAL */}
+                <div className="flex items-center justify-between border-b py-4">
+                  <span className="text-gray-500">
+                    Total Amount
+                  </span>
+
+                  <span className="font-bold text-gray-900">
+                    ₹{booking.totalAmount}
+                  </span>
+                </div>
+
+                {/* SEATS */}
+                <div className="flex items-start justify-between pt-4">
+                  <span className="text-gray-500">
+                    Seats
+                  </span>
+
+                  <span className="ml-4 text-right font-semibold text-gray-900">
+                    {booking.seats?.join(", ") || "N/A"}
+                  </span>
+                </div>
+
+              </div>
+
+              {/* QR CODE */}
+              {booking.qrCode && (
+                <div className="mt-8">
+
+                  <p className="mb-4 text-lg font-semibold text-gray-800">
+                    Your Ticket QR Code
+                  </p>
+
+                  <div className="flex justify-center">
+                    <div className="rounded-xl border bg-white p-4 shadow-sm">
+                      <img
+                        src={booking.qrCode}
+                        alt="Booking QR Code"
+                        className="h-56 w-56"
+                      />
+                    </div>
+                  </div>
+
+                  <p className="mt-3 text-sm text-gray-500">
+                    Show this QR code at the venue.
+                  </p>
+
+                </div>
+              )}
+
+              {/* BACK TO EVENTS */}
+              <button
+                type="button"
+                onClick={() => navigate("/events")}
+                className="mt-8 rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white hover:bg-blue-700"
+              >
+                Back to Events
+              </button>
+
+            </div>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import Register from "./pages/Register";
 import Events from "./pages/Events";
 import EventDetails from "./pages/EventDetails";
 import SeatSelection from "./pages/SeatSelection";
+import MyBookings from "./pages/MyBookings";
 
 function App() {
   return (
@@ -36,6 +37,10 @@ function App() {
       <Route
         path="/shows/:showId/seats"
         element={<SeatSelection />}
+      />
+      <Route
+        path="/my-bookings"
+        element={<MyBookings />}
       />
 
       <Route

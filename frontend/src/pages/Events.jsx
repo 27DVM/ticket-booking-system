@@ -72,6 +72,13 @@ function Events() {
             </span>
 
             <button
+              onClick={() => navigate("/my-bookings")}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-100"
+            >
+              My Bookings
+            </button>
+
+            <button
               onClick={handleLogout}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-100"
             >
