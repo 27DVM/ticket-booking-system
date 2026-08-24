@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Events from "./pages/Events";
 import EventDetails from "./pages/EventDetails";
+import SeatSelection from "./pages/SeatSelection";
 
 function App() {
   return (
@@ -31,6 +32,10 @@ function App() {
       <Route
         path="/events/:eventId"
         element={<EventDetails />}
+      />
+      <Route
+        path="/shows/:showId/seats"
+        element={<SeatSelection />}
       />
 
       <Route
