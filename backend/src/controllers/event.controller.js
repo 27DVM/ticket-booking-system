@@ -87,4 +87,64 @@ async function getShowSeats(req, res) {
   res.json(seats);
 }
 
-module.exports = { createEvent, getEvents, createShow, getShowSeats };
+async function getEventRevenue(req, res) {
+  const { eventId } = req.params;
+  const userId = req.user.userId;
+  const role = req.user.role;
+
+  try {
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      include: { shows: true },
+    });
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    if (event.organiserId !== userId && role !== "ADMIN") {
+      return res.status(403).json({ error: "Not authorized to view this event's revenue" });
+    }
+
+    const showIds = event.shows.map((s) => s.id);
+
+    const bookings = await prisma.booking.findMany({
+      where: { showId: { in: showIds }, status: "CONFIRMED" },
+      include: { seats: true },
+    });
+
+    const totalRevenue = bookings.reduce((sum, b) => sum + b.totalAmount, 0);
+    const totalBookings = bookings.length;
+    const totalSeatsSold = bookings.reduce((sum, b) => sum + b.seats.length, 0);
+
+    const perShow = {};
+    for (const show of event.shows) {
+      perShow[show.id] = {
+        showId: show.id,
+        dateTime: show.dateTime,
+        revenue: 0,
+        bookings: 0,
+        seatsSold: 0,
+      };
+    }
+    for (const b of bookings) {
+      perShow[b.showId].revenue += b.totalAmount;
+      perShow[b.showId].bookings += 1;
+      perShow[b.showId].seatsSold += b.seats.length;
+    }
+
+    res.json({
+      eventId: event.id,
+      title: event.title,
+      totalRevenue,
+      totalBookings,
+      totalSeatsSold,
+      shows: Object.values(perShow),
+    });
+  } catch (err) {
+    console.error("[getEventRevenue] Error:", err.message);
+    res.status(500).json({ error: "Failed to fetch revenue summary" });
+  }
+}
+
+module.exports = { createEvent, getEvents, createShow, getShowSeats, getEventRevenue };

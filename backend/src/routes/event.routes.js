@@ -5,6 +5,7 @@ const {
   getEvents,
   createShow,
   getShowSeats,
+  getEventRevenue,
 } = require("../controllers/event.controller");
 const { holdSeats } = require("../controllers/hold.controller");
 const { authenticate, authorize } = require("../middleware/auth.middleware");
@@ -14,5 +15,6 @@ router.get("/", getEvents);
 router.post("/:eventId/shows", authenticate, authorize("ORGANISER", "ADMIN"), createShow);
 router.get("/shows/:showId/seats", getShowSeats);
 router.post("/shows/:showId/hold", authenticate, holdSeats);
+router.get("/:eventId/revenue", authenticate, authorize("ORGANISER", "ADMIN"), getEventRevenue);
 
 module.exports = router;
