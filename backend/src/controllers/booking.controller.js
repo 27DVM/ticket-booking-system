@@ -167,4 +167,49 @@ async function cancelBooking(req, res) {
   }
 }
 
-module.exports = { confirmBooking, cancelBooking };
+const getMyBookings = async (req, res) => {
+  const userId = req.user.userId;
+
+  try {
+    const bookings = await prisma.booking.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      include: {
+        seats: {
+          include: {
+            seat: true,
+            category: true,
+          },
+        },
+        show: {
+          include: {
+            event: true,
+          },
+        },
+      },
+    });
+
+    const formatted = bookings.map((b) => ({
+      id: b.id,
+      referenceCode: b.referenceCode,
+      totalAmount: b.totalAmount,
+      status: b.status,
+      createdAt: b.createdAt,
+      event: {
+        title: b.show.event.title,
+        dateTime: b.show.dateTime,
+      },
+      seats: b.seats.map((s) => ({
+        label: s.seat.label,
+        category: s.category.name,
+      })),
+    }));
+
+    res.status(200).json({ bookings: formatted });
+  } catch (err) {
+    console.error("[getMyBookings] Error:", err.message);
+    res.status(500).json({ error: "Failed to fetch booking history" });
+  }
+};
+
+module.exports = { confirmBooking, cancelBooking, getMyBookings };

@@ -148,6 +148,66 @@ Content-Type: application/json
   "categoryId": "aeadb0bf-09c2-4909-9716-7331ab6990f4"
 }
 
-### Cancel booking as User A
-POST http://localhost:5000/api/bookings/79ae11cf-fc46-43d2-b158-781450e4f885/cancel
+### Register User C
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User C",
+  "email": "userc@example.com",
+  "password": "password123"
+}
+
+### Hold seat A7 as User A
+POST http://localhost:5000/api/events/shows/0b9812a8-7473-4b61-aea2-09ed5b2e277b/hold
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxNTc3Zi0yNjA0LTRkOGQtOWUyNS1kMTdkNGM3NDVjZjYiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODc1MTE3MDQsImV4cCI6MTc4ODExNjUwNH0.k00dc7m5RBUM1fWRTjNvNjgZ96jwC_B_wg5bWtbMfeo
+Content-Type: application/json
+
+{
+  "seatIds": ["1e85e876-2f1f-46b3-9de7-0cb228bcc7db"]
+}
+
+### Confirm booking A7 as User A
+POST http://localhost:5000/api/bookings/confirm
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxNTc3Zi0yNjA0LTRkOGQtOWUyNS1kMTdkNGM3NDVjZjYiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODc1MTE3MDQsImV4cCI6MTc4ODExNjUwNH0.k00dc7m5RBUM1fWRTjNvNjgZ96jwC_B_wg5bWtbMfeo
+Content-Type: application/json
+
+{
+  "showId": "0b9812a8-7473-4b61-aea2-09ed5b2e277b",
+  "seatIds": ["1e85e876-2f1f-46b3-9de7-0cb228bcc7db"]
+}
+
+### Join waitlist as User B (fresh, for A7)
+POST http://localhost:5000/api/events/shows/0b9812a8-7473-4b61-aea2-09ed5b2e277b/waitlist
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhOGUxOTE4NC1kMWM2LTQ3Y2UtOWY4OS03Nzc0ZTE3ODkyMWEiLCJyb2xlIjoiT1JHQU5JU0VSIiwiaWF0IjoxNzg3NTEyMDk3LCJleHAiOjE3ODgxMTY4OTd9.pzZ1X3Se826IcKbeXAOtZQq1ZnOtZ1MwLn5vsPcWxeY
+Content-Type: application/json
+
+{
+  "categoryId": "aeadb0bf-09c2-4909-9716-7331ab6990f4"
+}
+
+### Login User C
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "userc@example.com",
+  "password": "password123"
+}
+
+### Join waitlist as User C (for A7)
+POST http://localhost:5000/api/events/shows/0b9812a8-7473-4b61-aea2-09ed5b2e277b/waitlist
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJlOTFkZjA4NS1lYmUzLTRhNTEtOTBlMC1hZDlhY2I4Y2RlZjQiLCJyb2xlIjoiQ1VTVE9NRVIiLCJpYXQiOjE3ODc1MTQ1NTcsImV4cCI6MTc4ODExOTM1N30.eJZsmHPwj4SwOU-oc8P0YV7j54I0Fvo_xeFhovW9EuA
+Content-Type: application/json
+
+{
+  "categoryId": "aeadb0bf-09c2-4909-9716-7331ab6990f4"
+}
+
+### Cancel booking A7 as User A
+POST http://localhost:5000/api/bookings/27a09e58-891b-4247-b2a8-bb9091bdd6a6/cancel
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxNTc3Zi0yNjA0LTRkOGQtOWUyNS1kMTdkNGM3NDVjZjYiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODc1MTE3MDQsImV4cCI6MTc4ODExNjUwNH0.k00dc7m5RBUM1fWRTjNvNjgZ96jwC_B_wg5bWtbMfeo 
+
+### Get my bookings as User A
+GET http://localhost:5000/api/bookings/my-bookings
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZWUxNTc3Zi0yNjA0LTRkOGQtOWUyNS1kMTdkNGM3NDVjZjYiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODc1MTE3MDQsImV4cCI6MTc4ODExNjUwNH0.k00dc7m5RBUM1fWRTjNvNjgZ96jwC_B_wg5bWtbMfeo
